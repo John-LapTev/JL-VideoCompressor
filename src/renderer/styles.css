@@ -1083,8 +1083,8 @@ select {
 
 /* Информация о битрейте */
 .bitrate-range {
-    color: var(--success-color);
     font-size: 11px;
+    color: var(--success-color);
     background-color: rgba(76, 175, 80, 0.1);
     padding: 1px 4px;
     border-radius: 3px;
@@ -1450,52 +1450,6 @@ input[type="checkbox"]:checked + .toggle-switch.small:before {
     height: 0;
 }
 
-/* Адаптивность */
-@media (max-width: 580px) {
-    .compression-settings,
-    .comparison-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .video-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    
-    .notification {
-        width: calc(100% - 40px);
-        right: 20px;
-        bottom: 20px;
-    }
-}
-
-/* Для небольших экранов */
-@media (max-height: 600px) {
-    .section {
-        padding: 10px;
-        margin-bottom: 10px;
-    }
-    
-    .video-grid {
-        gap: 5px;
-    }
-    
-    .input-group {
-        margin-bottom: 8px;
-    }
-}
-
-/* Для очень широких экранов */
-@media (min-width: 1200px) {
-    .container {
-        max-width: 80%;
-        margin: 0 auto;
-    }
-    
-    .compression-settings {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-}
-
 /* Улучшение внешнего вида элементов в продвинутых настройках */
 .advanced-params-container select,
 .advanced-params-container input[type="range"] {
@@ -1573,9 +1527,384 @@ input[type="checkbox"]:checked + .toggle-switch.small:before {
     gap: 8px;
 }
 
+/* Адаптивность */
+@media (max-width: 580px) {
+    .compression-settings,
+    .comparison-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .video-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .notification {
+        width: calc(100% - 40px);
+        right: 20px;
+        bottom: 20px;
+    }
+}
+
+/* Для небольших экранов */
+@media (max-height: 600px) {
+    .section {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .video-grid {
+        gap: 5px;
+    }
+    
+    .input-group {
+        margin-bottom: 8px;
+    }
+}
+
+/* Для очень широких экранов */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 80%;
+        margin: 0 auto;
+    }
+    
+    .compression-settings {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
 @media (max-width: 480px) {
     .results-view .footer button {
         flex: 100%; /* На совсем маленьких экранах кнопки будут на полную ширину */
         margin-bottom: 5px;
+    }
+}
+
+/* Стили для модального окна обновлений */
+.update-dialog {
+    display: none;
+    position: fixed;
+    z-index: 1500;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    overflow: auto;
+}
+
+.update-dialog.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.update-dialog-content {
+    background-color: var(--card-bg);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    animation: scaleIn 0.3s ease-out;
+    overflow: hidden;
+}
+
+.update-dialog-header {
+    padding: 15px 20px;
+    background: var(--primary-gradient);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.update-dialog-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.update-dialog-close {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.update-dialog-close:hover {
+    transform: scale(1.1);
+}
+
+.update-dialog-body {
+    padding: 20px;
+}
+
+.update-info {
+    margin-bottom: 20px;
+}
+
+.update-version-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+}
+
+.current-version, .latest-version {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.current-version span {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.latest-version span {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.update-notes {
+    background-color: var(--input-bg);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.update-notes h4 {
+    margin: 0 0 8px 0;
+    color: var(--primary-color);
+    font-size: 15px;
+}
+
+.update-notes-content {
+    font-size: 14px;
+    color: var(--text-color);
+    line-height: 1.5;
+    max-height: 150px;
+    overflow-y: auto;
+    white-space: pre-line; /* Сохраняем переносы строк */
+}
+
+.update-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.update-version-choice {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.update-version-choice p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.version-choice-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.version-choice-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-color);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    gap: 8px;
+}
+
+.version-choice-btn svg {
+    color: var(--primary-color);
+}
+
+.version-choice-btn:hover {
+    background-color: rgba(255, 107, 107, 0.1);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.version-tooltip {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--card-darker);
+    color: var(--text-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 100;
+}
+
+.version-choice-btn:hover .version-tooltip {
+    opacity: 1;
+}
+
+/* Стили для блока прогресса скачивания */
+.update-download-progress {
+    margin-top: 20px;
+}
+
+.progress-title {
+    font-size: 14px;
+    color: var(--text-color);
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.update-download-progress .progress-bar-container {
+    margin-bottom: 10px;
+}
+
+.update-download-progress .progress-info {
+    margin-bottom: 15px;
+}
+
+.update-download-progress .secondary-button {
+    width: 100%;
+}
+
+/* Стили для блока завершения загрузки */
+.update-complete {
+    margin-top: 20px;
+}
+
+.update-complete-message {
+    text-align: center;
+    color: var(--success-color);
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.update-complete-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.update-complete-actions .primary-button,
+.update-complete-actions .secondary-button {
+    flex: 1;
+}
+
+/* Стили для индикатора обновлений */
+.update-badge {
+    position: fixed;
+    right: 20px;
+    top: 60px;
+    width: 12px;
+    height: 12px;
+    z-index: 150;
+    cursor: pointer;
+    display: none;
+}
+
+.update-badge.show {
+    display: block;
+    animation: pulseAnimation 2s infinite;
+}
+
+.update-badge-dot {
+    width: 100%;
+    height: 100%;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+}
+
+.update-badge-tooltip {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: 10px;
+    padding: 5px 10px;
+    background-color: var(--card-darker);
+    color: var(--text-color);
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.update-badge:hover .update-badge-tooltip {
+    opacity: 1;
+}
+
+@keyframes pulseAnimation {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(255, 107, 107, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+    }
+}
+
+/* Стили для блока версии с кнопкой проверки обновлений */
+.version-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.check-updates-btn {
+    background: none;
+    border: none;
+    color: white;
+    opacity: 0.8;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.check-updates-btn:hover {
+    opacity: 1;
+    transform: rotate(180deg);
+}
+
+.check-updates-btn.loading {
+    animation: rotating 1.5s linear infinite;
+}
+
+@keyframes rotating {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
     }
 }

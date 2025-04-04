@@ -313,6 +313,88 @@
             <div class="notification-progress" id="notification-progress"></div>
         </div>
 
+        <!-- Модальное окно обновления -->
+        <div class="update-dialog" id="update-dialog">
+            <div class="update-dialog-content">
+                <div class="update-dialog-header">
+                    <h3>Доступно обновление!</h3>
+                    <span class="update-dialog-close" id="update-dialog-close">&times;</span>
+                </div>
+                <div class="update-dialog-body">
+                    <div class="update-info">
+                        <div class="update-version-info">
+                            <div class="current-version">
+                                Текущая версия: <span id="current-version">1.0.0</span>
+                            </div>
+                            <div class="latest-version">
+                                Доступна версия: <span id="latest-version">1.1.0</span>
+                            </div>
+                        </div>
+                        <div class="update-notes" id="update-notes">
+                            <h4>Что нового:</h4>
+                            <div class="update-notes-content" id="update-notes-content">
+                                Загрузка информации...
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="update-actions" id="update-actions">
+                        <div class="update-version-choice">
+                            <p>Выберите версию для скачивания:</p>
+                            <div class="version-choice-buttons">
+                                <button class="version-choice-btn" id="download-installer-btn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                    <span>Установщик</span>
+                                    <div class="version-tooltip">Скачать установочную версию .exe</div>
+                                </button>
+                                <button class="version-choice-btn" id="download-portable-btn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                    </svg>
+                                    <span>Портативная</span>
+                                    <div class="version-tooltip">Скачать портативную версию .exe</div>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="secondary-button" id="remind-later-btn">Напомнить позже</button>
+                    </div>
+                    
+                    <div class="update-download-progress" id="update-download-progress" style="display: none;">
+                        <div class="progress-title">Скачивание обновления...</div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="update-progress-bar"></div>
+                        </div>
+                        <div class="progress-info">
+                            <div id="update-progress-percentage">0%</div>
+                            <div id="update-download-size">0 MB / 0 MB</div>
+                        </div>
+                        <button class="secondary-button" id="cancel-download-btn">Отмена</button>
+                    </div>
+                    
+                    <div class="update-complete" id="update-complete" style="display: none;">
+                        <div class="update-complete-message">
+                            Скачивание завершено!
+                        </div>
+                        <div class="update-complete-actions">
+                            <button class="primary-button" id="run-update-btn">Установить обновление</button>
+                            <button class="secondary-button" id="show-update-folder-btn">Открыть папку</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Индикатор проверки обновлений -->
+        <div class="update-badge" id="update-badge">
+            <div class="update-badge-dot"></div>
+            <div class="update-badge-tooltip">Доступно обновление!</div>
+        </div>
+
         <header>
             <div class="logo">
                 <div class="logo-icon">
@@ -358,7 +440,16 @@
                 </a>
             </div>
             
-            <div class="version">v1.0</div>
+            <div class="version-container">
+                <div class="version" id="app-version">v1.0.0</div>
+                <button class="check-updates-btn" id="check-updates-btn" title="Проверить обновления">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12a9 9 0 0 1-9 9"></path>
+                        <path d="M3 12a9 9 0 0 1 9-9"></path>
+                        <path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"></path>
+                    </svg>
+                </button>
+            </div>
         </header>
 
         <!-- Основной контейнер для содержимого -->

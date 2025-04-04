@@ -51,5 +51,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }
 });
 
+// API для обновлений
+contextBridge.exposeInMainWorld('updateAPI', {
+  // Проверка наличия обновлений
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  
+  // Начать скачивание обновления
+  startDownload: (downloadUrl) => ipcRenderer.invoke('start-update-download', downloadUrl),
+  
+  // Отслеживание прогресса скачивания
+  onDownloadProgress: (callback) => {
+    if (typeof callback === 'function') {
+      ipcRenderer.on('update-download-progress', (event, data) => callback(data));
+    }
+  },
+  
+  // Открыть скачанный файл обновления
+  openUpdateFile: (filePath) => ipcRenderer.invoke('open-update-file', filePath),
+  
+  // Показать папку с обновлением
+  showUpdateFolder: (filePath) => ipcRenderer.invoke('show-update-folder', filePath)
+});
+
 // Логируем, что скрипт преднагрузки выполнен
 console.log('Preload script loaded successfully');

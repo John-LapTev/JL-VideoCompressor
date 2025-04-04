@@ -131,6 +131,41 @@ document.addEventListener('DOMContentLoaded', function() {
     const refSelect = document.getElementById('ref');
     const enableTwopass = document.getElementById('enable-twopass');
     
+    // Элементы для обновлений
+    const updateDialog = document.getElementById('update-dialog');
+    const updateDialogClose = document.getElementById('update-dialog-close');
+    const currentVersionEl = document.getElementById('current-version');
+    const latestVersionEl = document.getElementById('latest-version');
+    const updateNotesContent = document.getElementById('update-notes-content');
+    const downloadInstallerBtn = document.getElementById('download-installer-btn');
+    const downloadPortableBtn = document.getElementById('download-portable-btn');
+    const remindLaterBtn = document.getElementById('remind-later-btn');
+    const updateBadge = document.getElementById('update-badge');
+    const checkUpdatesBtn = document.getElementById('check-updates-btn');
+    const appVersionEl = document.getElementById('app-version');
+
+    // Элементы для прогресса скачивания обновления
+    const updateDownloadProgress = document.getElementById('update-download-progress');
+    const updateProgressBar = document.getElementById('update-progress-bar');
+    const updateProgressPercentage = document.getElementById('update-progress-percentage');
+    const updateDownloadSize = document.getElementById('update-download-size');
+    const cancelDownloadBtn = document.getElementById('cancel-download-btn');
+
+    // Элементы для завершения скачивания
+    const updateComplete = document.getElementById('update-complete');
+    const runUpdateBtn = document.getElementById('run-update-btn');
+    const showUpdateFolderBtn = document.getElementById('show-update-folder-btn');
+
+    // Переменные для хранения информации об обновлении
+    let updateInfo = null;
+    let downloadedUpdatePath = null;
+    let isDownloadingUpdate = false;
+    
+    // Добавляем элемент для индикации двухпроходного кодирования
+    const progressPassInfo = document.getElementById('progress-pass-info');
+    const currentPass = document.getElementById('current-pass');
+    const totalPasses = document.getElementById('total-passes');
+    
     // Скрываем продвинутые параметры по умолчанию
     if (advancedParamsContainer) {
         advancedParamsContainer.style.display = 'none';
@@ -151,11 +186,6 @@ document.addEventListener('DOMContentLoaded', function() {
             aqStrengthValue.textContent = this.value;
         });
     }
-    
-    // Добавляем элемент для индикации двухпроходного кодирования
-    const progressPassInfo = document.getElementById('progress-pass-info');
-    const currentPass = document.getElementById('current-pass');
-    const totalPasses = document.getElementById('total-passes');
     
     // ================ ФУНКЦИИ ================
     
@@ -519,6 +549,234 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         return true;
+    }
+
+    // Функция для проверки обновлений
+    async function checkForUpdates(showNoUpdateNotification = true) {
+        try {
+            if (checkUpdatesBtn) {
+                checkUpdatesBtn.classList.add('loading');
+            }
+            
+            // Проверяем наличие обновлений
+            const result = await window.updateAPI.checkForUpdates();
+            
+            if (checkUpdatesBtn) {
+                checkUpdatesBtn.classList.remove('loading');
+            }
+            
+            // Обновляем отображение текущей версии
+            if (appVersionEl && result.currentVersion) {
+                appVersionEl.textContent = `v${result.currentVersion}`;
+            }
+            
+            if (result.hasUpdate) {
+                updateInfo = result;
+                
+                // Показываем информацию об обновлении
+                if (currentVersionEl) currentVersionEl.textContent = result.currentVersion;
+                if (latestVersionEl) latestVersionEl.textContent = result.latest_version;
+                if (updateNotesContent) updateNotesContent.textContent = result.release_notes || 'Информация о обновлении не доступна.';
+                
+                // Показываем диалог обновления
+                if (updateDialog) {
+                    updateDialog.classList.add('show');
+                }
+                
+                // Показываем индикатор обновления
+                if (updateBadge) {
+                    updateBadge.classList.add('show');
+                }
+                
+                return true;
+            } else if (result.error) {
+                console.error('Ошибка при проверке обновлений:', result.error);
+                
+                if (showNoUpdateNotification) {
+                    showNotification('Ошибка при проверке обновлений: ' + result.error, 5000);
+                }
+            } else {
+                if (showNoUpdateNotification) {
+                    showNotification('У вас установлена последняя версия приложения', 3000);
+                }
+            }
+            
+            return false;
+        } catch (error) {
+            console.error('Ошибка при проверке обновлений:', error);
+            
+            if (checkUpdatesBtn) {
+                checkUpdatesBtn.classList.remove('loading');
+            }
+            
+            if (showNoUpdateNotification) {
+                showNotification('Ошибка при проверке обновлений: ' + error.message, 5000);
+            }
+            
+            return false;
+        }
+    }
+
+    // Функция для закрытия диалога обновления
+    function closeUpdateDialog() {
+        if (updateDialog) {
+            updateDialog.classList.remove('show');
+        }
+        
+        // Сбрасываем состояние UI
+        if (updateDownloadProgress) {
+            updateDownloadProgress.style.display = 'none';
+        }
+        
+        if (updateComplete) {
+            updateComplete.style.display = 'none';
+        }
+        
+        // Возвращаем видимость кнопок выбора версии
+        if (document.getElementById('update-actions')) {
+            document.getElementById('update-actions').style.display = 'flex';
+        }
+    }
+
+    // Функция для скачивания обновления
+    async function downloadUpdate(downloadUrl) {
+        if (!downloadUrl) {
+            showNotification('Ссылка на обновление недоступна', 4000);
+            return;
+        }
+        
+        try {
+            // Скрываем кнопки действий и показываем прогресс
+            if (document.getElementById('update-actions')) {
+                document.getElementById('update-actions').style.display = 'none';
+            }
+            
+            if (updateDownloadProgress) {
+                updateDownloadProgress.style.display = 'block';
+            }
+            
+            isDownloadingUpdate = true;
+            
+            // Запускаем скачивание
+            const downloadResult = await window.updateAPI.startDownload(downloadUrl);
+            
+            isDownloadingUpdate = false;
+            
+            if (downloadResult.success) {
+                // Сохраняем путь к скачанному файлу
+                downloadedUpdatePath = downloadResult.filePath;
+                
+                // Скрываем прогресс и показываем сообщение о завершении
+                if (updateDownloadProgress) {
+                    updateDownloadProgress.style.display = 'none';
+                }
+                
+                if (updateComplete) {
+                    updateComplete.style.display = 'block';
+                }
+                
+                return true;
+            } else {
+                // В случае ошибки возвращаем кнопки действий
+                if (document.getElementById('update-actions')) {
+                    document.getElementById('update-actions').style.display = 'flex';
+                }
+                
+                if (updateDownloadProgress) {
+                    updateDownloadProgress.style.display = 'none';
+                }
+                
+                showNotification('Ошибка при скачивании обновления: ' + downloadResult.error, 5000);
+                return false;
+            }
+        } catch (error) {
+            console.error('Ошибка при скачивании обновления:', error);
+            
+            isDownloadingUpdate = false;
+            
+            // В случае ошибки возвращаем кнопки действий
+            if (document.getElementById('update-actions')) {
+                document.getElementById('update-actions').style.display = 'flex';
+            }
+            
+            if (updateDownloadProgress) {
+                updateDownloadProgress.style.display = 'none';
+            }
+            
+            showNotification('Ошибка при скачивании обновления: ' + error.message, 5000);
+            return false;
+        }
+    }
+
+    // Функция для отмены скачивания
+    function cancelDownload() {
+        // Вернем интерфейс в исходное состояние
+        if (document.getElementById('update-actions')) {
+            document.getElementById('update-actions').style.display = 'flex';
+        }
+        
+        if (updateDownloadProgress) {
+            updateDownloadProgress.style.display = 'none';
+        }
+        
+        if (updateProgressBar) {
+            updateProgressBar.style.width = '0%';
+        }
+        
+        isDownloadingUpdate = false;
+        showNotification('Скачивание обновления отменено', 3000);
+    }
+
+    // Функция для запуска установщика обновления
+    async function runUpdate() {
+        if (!downloadedUpdatePath) {
+            showNotification('Путь к файлу обновления не найден', 4000);
+            return;
+        }
+        
+        try {
+            const result = await window.updateAPI.openUpdateFile(downloadedUpdatePath);
+            
+            if (result.success) {
+                // Закрываем диалог обновления
+                closeUpdateDialog();
+                
+                // Возможно нужно закрыть приложение после запуска установщика
+                // Это можно сделать через IPC, но для демонстрации просто закроем диалог
+            } else {
+                showNotification('Ошибка при запуске обновления: ' + result.error, 5000);
+            }
+        } catch (error) {
+            console.error('Ошибка при запуске обновления:', error);
+            showNotification('Ошибка при запуске обновления: ' + error.message, 5000);
+        }
+    }
+
+    // Функция для открытия папки с обновлением
+    async function showUpdateFolder() {
+        if (!downloadedUpdatePath) {
+            showNotification('Путь к файлу обновления не найден', 4000);
+            return;
+        }
+        
+        try {
+            const result = await window.updateAPI.showUpdateFolder(downloadedUpdatePath);
+            
+            if (!result.success) {
+                showNotification('Ошибка при открытии папки: ' + result.error, 5000);
+            }
+        } catch (error) {
+            console.error('Ошибка при открытии папки с обновлением:', error);
+            showNotification('Ошибка при открытии папки: ' + error.message, 5000);
+        }
+    }
+
+    // Функция для форматирования размера файла
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+        if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
     }
 
     // Обработка выбора файла
@@ -1741,4 +1999,102 @@ document.addEventListener('DOMContentLoaded', function() {
             applyPreset(this.value);
         });
     }
+    
+    // Инициализация обработчиков событий для обновлений
+    if (updateDialog && updateDialogClose) {
+        updateDialogClose.addEventListener('click', closeUpdateDialog);
+        
+        // Закрыть диалог при клике вне содержимого
+        updateDialog.addEventListener('click', function(e) {
+            if (e.target === updateDialog) {
+                closeUpdateDialog();
+            }
+        });
+    }
+
+    // Обработчик для кнопки проверки обновлений
+    if (checkUpdatesBtn) {
+        checkUpdatesBtn.addEventListener('click', function() {
+            checkForUpdates(true);
+        });
+    }
+
+    // Обработчик для индикатора обновлений
+    if (updateBadge) {
+        updateBadge.addEventListener('click', function() {
+            if (updateInfo) {
+                updateDialog.classList.add('show');
+            } else {
+                checkForUpdates(true);
+            }
+        });
+    }
+
+    // Обработчик для кнопки скачивания установщика
+    if (downloadInstallerBtn) {
+        downloadInstallerBtn.addEventListener('click', function() {
+            if (updateInfo && updateInfo.installer_url) {
+                downloadUpdate(updateInfo.installer_url);
+            } else {
+                showNotification('Ссылка на установщик недоступна', 4000);
+            }
+        });
+    }
+
+    // Обработчик для кнопки скачивания портативной версии
+    if (downloadPortableBtn) {
+        downloadPortableBtn.addEventListener('click', function() {
+            if (updateInfo && updateInfo.portable_url) {
+                downloadUpdate(updateInfo.portable_url);
+            } else {
+                showNotification('Ссылка на портативную версию недоступна', 4000);
+            }
+        });
+    }
+
+    // Обработчик для кнопки "Напомнить позже"
+    if (remindLaterBtn) {
+        remindLaterBtn.addEventListener('click', closeUpdateDialog);
+    }
+
+    // Обработчик для кнопки отмены скачивания
+    if (cancelDownloadBtn) {
+        cancelDownloadBtn.addEventListener('click', cancelDownload);
+    }
+
+    // Обработчик для кнопки запуска обновления
+    if (runUpdateBtn) {
+        runUpdateBtn.addEventListener('click', runUpdate);
+    }
+
+    // Обработчик для кнопки показа папки с обновлением
+    if (showUpdateFolderBtn) {
+        showUpdateFolderBtn.addEventListener('click', showUpdateFolder);
+    }
+
+    // Обработчик прогресса скачивания
+    if (window.updateAPI && typeof window.updateAPI.onDownloadProgress === 'function') {
+        window.updateAPI.onDownloadProgress((data) => {
+            if (!isDownloadingUpdate) return;
+            
+            if (updateProgressBar) {
+                updateProgressBar.style.width = `${data.progress}%`;
+            }
+            
+            if (updateProgressPercentage) {
+                updateProgressPercentage.textContent = `${Math.floor(data.progress)}%`;
+            }
+            
+            if (updateDownloadSize) {
+                const downloadedSize = formatFileSize(data.downloaded);
+                const totalSize = formatFileSize(data.total);
+                updateDownloadSize.textContent = `${downloadedSize} / ${totalSize}`;
+            }
+        });
+    }
+    
+    // Автоматически проверяем обновления при запуске (без уведомления если нет обновлений)
+    setTimeout(() => {
+        checkForUpdates(false);
+    }, 2000);
 });

@@ -1,9 +1,10 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const ffmpeg = require('fluent-ffmpeg');
 const { spawn } = require('child_process');
 const os = require('os');
+const https = require('https');
 
 // Функция для проверки наличия файла
 function fileExists(filePath) {
@@ -13,6 +14,141 @@ function fileExists(filePath) {
     console.error('Ошибка при проверке наличия файла:', error);
     return false;
   }
+}
+
+// URL для проверки обновлений
+const UPDATE_CHECK_URL = 'https://jl-studio.art/my_apps/JL_Video_Compressor/update_info.json';
+
+// Функция для получения текущей версии из package.json
+function getCurrentVersion() {
+  try {
+    const packageJsonPath = path.join(app.getAppPath(), 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    return packageJson.version;
+  } catch (error) {
+    console.error('Ошибка при получении текущей версии:', error);
+    return '1.0.0'; // Версия по умолчанию
+  }
+}
+
+// Функция для сравнения версий
+function isNewer(latestVersion, currentVersion) {
+  const latest = latestVersion.split('.').map(Number);
+  const current = currentVersion.split('.').map(Number);
+
+  for (let i = 0; i < Math.max(latest.length, current.length); i++) {
+    const a = latest[i] || 0;
+    const b = current[i] || 0;
+    if (a > b) return true;
+    if (a < b) return false;
+  }
+
+  return false; // Версии равны
+}
+
+// Функция для проверки обновлений
+function checkForUpdates() {
+  return new Promise((resolve, reject) => {
+    console.log('Проверка наличия обновлений...');
+    
+    const req = https.get(UPDATE_CHECK_URL, (res) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`Ошибка при получении информации об обновлениях: ${res.statusCode}`));
+        return;
+      }
+
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        try {
+          const updateInfo = JSON.parse(data);
+          const currentVersion = getCurrentVersion();
+          
+          console.log(`Текущая версия: ${currentVersion}, последняя версия: ${updateInfo.latest_version}`);
+          
+          if (isNewer(updateInfo.latest_version, currentVersion)) {
+            console.log('Доступно обновление!');
+            resolve({
+              hasUpdate: true,
+              currentVersion,
+              ...updateInfo
+            });
+          } else {
+            console.log('Обновлений не найдено.');
+            resolve({
+              hasUpdate: false,
+              currentVersion,
+              latest_version: updateInfo.latest_version
+            });
+          }
+        } catch (error) {
+          reject(new Error(`Ошибка при обработке информации об обновлениях: ${error.message}`));
+        }
+      });
+    });
+    
+    req.on('error', (error) => {
+      console.error('Ошибка при проверке обновлений:', error);
+      reject(new Error(`Ошибка при проверке обновлений: ${error.message}`));
+    });
+    
+    req.end();
+  });
+}
+
+// Функция для скачивания файла обновления
+function downloadUpdate(downloadUrl, saveFilePath, onProgress) {
+  return new Promise((resolve, reject) => {
+    // Создаем папку для загрузки, если её нет
+    const downloadDir = path.dirname(saveFilePath);
+    if (!fs.existsSync(downloadDir)) {
+      fs.mkdirSync(downloadDir, { recursive: true });
+    }
+    
+    const file = fs.createWriteStream(saveFilePath);
+    
+    console.log(`Скачивание обновления из ${downloadUrl} в ${saveFilePath}`);
+    
+    https.get(downloadUrl, (response) => {
+      if (response.statusCode !== 200) {
+        reject(new Error(`Ошибка при скачивании обновления: ${response.statusCode}`));
+        return;
+      }
+      
+      const totalSize = parseInt(response.headers['content-length'], 10);
+      let downloadedSize = 0;
+      
+      response.on('data', (chunk) => {
+        downloadedSize += chunk.length;
+        file.write(chunk);
+        
+        if (onProgress && totalSize) {
+          const progress = Math.round((downloadedSize / totalSize) * 100);
+          onProgress(progress, downloadedSize, totalSize);
+        }
+      });
+      
+      response.on('end', () => {
+        file.end();
+        console.log('Скачивание обновления завершено');
+        resolve({ filePath: saveFilePath });
+      });
+      
+    }).on('error', (error) => {
+      fs.unlink(saveFilePath, () => {}); // Удаляем недозагруженный файл
+      console.error('Ошибка при скачивании обновления:', error);
+      reject(new Error(`Ошибка при скачивании обновления: ${error.message}`));
+    });
+  });
+}
+
+// Определение пути для загрузки обновления
+function getUpdateDownloadPath(filename) {
+  const downloadDir = path.join(app.getPath('downloads'), 'JL-VideoCompressor-Updates');
+  return path.join(downloadDir, filename);
 }
 
 // Определение пути к FFmpeg - УЛУЧШЕННАЯ ВЕРСИЯ
@@ -801,5 +937,58 @@ ipcMain.handle('open-folder', (event, folderPath) => {
   } catch (error) {
     console.error('Ошибка при открытии папки:', error);
     return false;
+  }
+});
+
+// Обработчики IPC для обновлений
+ipcMain.handle('check-for-updates', async () => {
+  try {
+    return await checkForUpdates();
+  } catch (error) {
+    console.error('Ошибка при проверке обновлений:', error);
+    return {
+      hasUpdate: false,
+      error: error.message
+    };
+  }
+});
+
+ipcMain.handle('start-update-download', async (event, downloadUrl) => {
+  const filename = path.basename(new URL(downloadUrl).pathname);
+  const savePath = getUpdateDownloadPath(filename);
+  
+  try {
+    // Отправляем обновления о прогрессе в renderer process
+    const onProgress = (progress, downloaded, total) => {
+      if (!event.sender.isDestroyed()) {
+        event.sender.send('update-download-progress', { progress, downloaded, total });
+      }
+    };
+    
+    const result = await downloadUpdate(downloadUrl, savePath, onProgress);
+    return { success: true, filePath: result.filePath };
+  } catch (error) {
+    console.error('Ошибка при скачивании обновления:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('open-update-file', async (event, filePath) => {
+  try {
+    await shell.openPath(filePath);
+    return { success: true };
+  } catch (error) {
+    console.error('Ошибка при открытии файла обновления:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('show-update-folder', async (event, filePath) => {
+  try {
+    await shell.showItemInFolder(filePath);
+    return { success: true };
+  } catch (error) {
+    console.error('Ошибка при открытии папки с обновлением:', error);
+    return { success: false, error: error.message };
   }
 });
