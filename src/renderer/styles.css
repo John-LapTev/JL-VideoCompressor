@@ -1,0 +1,1581 @@
+:root {
+    --primary-color: #FF6B6B;
+    --primary-gradient: linear-gradient(90deg, #FF6B6B 0%, #FF8E53 100%);
+    --secondary-color: #FF8E53;
+    --bg-color: #121212;
+    --card-bg: #1E1E1E;
+    --card-darker: #161616;
+    --text-color: #E0E0E0;
+    --text-secondary: #9E9E9E;
+    --border-color: #333333;
+    --input-bg: #2A2A2A;
+    --success-color: #4CAF50;
+    --error-color: #F44336;
+    --crf-high-quality: #4CAF50;
+    --crf-mid-quality: #FFC107;
+    --crf-low-quality: #F44336;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes shine {
+    to { transform: translateX(100%); }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    transition: all 0.2s ease;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    overflow: hidden;
+}
+
+/* Стилизация полосы прокрутки */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--card-darker);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #444;
+}
+
+/* Основной контейнер с адаптивной высотой */
+.container {
+    width: 100%;
+    height: 100%;
+    background-color: var(--card-bg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: fadeIn 0.5s ease-out;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Контейнер для содержимого с адаптивной высотой */
+.content-container {
+    min-height: 400px;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Переключение между экранами */
+.main-view, .progress-view, .results-view {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.main-view.active, .progress-view.active, .results-view.active {
+    display: flex;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Шапка */
+header {
+    background: var(--primary-gradient);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+}
+
+.logo-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    border-radius: 6px;
+    padding: 3px;
+    width: 24px;
+    height: 24px;
+}
+
+/* Социальные ссылки */
+.social-links {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.social-link {
+    color: white;
+    opacity: 0.9;
+    transition: all 0.2s;
+}
+
+.social-link:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+/* Модальные окна подсказок */
+.tooltip-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    overflow: auto;
+}
+
+.tooltip-modal-content {
+    background-color: var(--card-bg);
+    margin: 10% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.tooltip-modal-header {
+    padding: 15px 20px;
+    background: var(--primary-gradient);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tooltip-modal-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.tooltip-modal-close {
+    color: white;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.tooltip-modal-body {
+    padding: 20px;
+    color: var(--text-color);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.tooltip-modal-body p {
+    margin-bottom: 8px;
+}
+
+.tooltip-modal-body p:last-child {
+    margin-bottom: 0;
+}
+
+.tooltip-modal-body strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Старые стили для подсказок (для обратной совместимости) */
+.tooltip-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: rgb(0 0 0);
+    padding: 15px 20px;
+    z-index: 200;
+    border-bottom: 4px solid #696969;
+    display: none;
+    animation: slideDown 0.3s ease-out;
+}
+
+.tooltip-area.active {
+    display: block;
+}
+
+.tooltip-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+.tooltip-content {
+    color: var(--text-color);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.tooltip-content p {
+    margin-bottom: 8px;
+}
+
+.tooltip-content p:last-child {
+    margin-bottom: 0;
+}
+
+.tooltip-content strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.tooltip-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.tooltip-close:hover {
+    color: var(--text-color);
+}
+
+/* Основное содержимое */
+.main-content {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100%;
+    position: relative; /* Добавляем для корректного позиционирования потомков */
+}
+
+/* Секции */
+.section {
+    border-radius: 12px;
+    padding: 14px;
+    background-color: rgb(0 0 0 / 76%);
+    transition: background-color 0.3s;
+    margin-bottom: 14px;
+    position: relative; /* Для корректного позиционирования потомков */
+    overflow: visible; /* Для отображения выпадающих списков */
+}
+
+.section:hover {
+    background-color: rgb(0 0 0);
+}
+
+.section:last-child {
+    margin-bottom: 0;
+}
+
+/* Стили для сворачиваемой секции */
+.collapsible .section-title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.collapse-toggle {
+    cursor: pointer;
+    padding: 2px;
+}
+
+.section-content {
+    overflow: visible; /* Меняем на visible, чтобы выпадающие списки были видны */
+    transition: max-height 0.3s ease-out;
+    max-height: 1000px; /* Начальная высота развернутого содержимого */
+}
+
+.section-content.collapsed {
+    max-height: 0;
+    overflow: hidden; /* Скрываем содержимое только когда секция свернута */
+}
+
+.section-title {
+    margin-bottom: 10px;
+    font-size: 15px;
+    color: var(--text-color);
+    font-weight: 600;
+    position: relative;
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 80%;
+    width: 3px;
+    background: var(--primary-gradient);
+    border-radius: 4px;
+}
+
+/* Компактная дропзона */
+.compact-dropzone {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px dashed var(--border-color);
+    border-radius: 4px;
+    padding: 12px;
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.compact-dropzone:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.compact-dropzone.drag-over {
+    border-color: var(--primary-color);
+    background-color: rgba(255, 107, 107, 0.1);
+}
+
+.dropzone-icon {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.dropzone-text {
+    flex: 1;
+}
+
+.dropzone-title {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.dropzone-formats {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Скрытый элемент файлового ввода */
+input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Компактный блок информации о видео */
+.video-info {
+    display: none;
+}
+
+.video-info.active {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: fadeIn 0.4s ease-out;
+    margin-top: 10px;
+}
+
+.video-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.video-thumbnail {
+    width: 42px;
+    height: 42px;
+    background-color: #000;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.video-name {
+    font-weight: 600;
+    font-size: 14px;
+    flex: 1;
+    word-break: break-all;
+}
+
+.change-video-btn {
+    background-color: var(--input-bg);
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.change-video-btn:hover {
+    background-color: var(--border-color);
+}
+
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.video-detail {
+    background-color: var(--input-bg);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
+}
+
+.video-detail-label {
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+    font-size: 11px;
+}
+
+.video-detail-value {
+    font-weight: 500;
+}
+
+/* Информация о пути к файлу */
+.video-path-info {
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+.file-path-container {
+    display: flex;
+    flex-direction: column; /* Изменение! Пусть действия будут под текстом */
+    background-color: var(--input-bg);
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 3px;
+    overflow: hidden;
+}
+
+.file-path-value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-color);
+    max-width: 100%;
+    /* Добавляем адаптивный перенос для длинных слов/путей */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.file-path-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.file-action-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.file-action-btn:hover {
+    color: var(--text-color);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.file-path-label {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+/* Вкладки настроек */
+.settings-tabs {
+    display: flex;
+    margin-bottom: 12px;
+}
+
+.settings-tab {
+    padding: 4px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    position: relative;
+}
+
+.settings-tab.active {
+    color: var(--primary-color);
+}
+
+.settings-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--primary-gradient);
+}
+
+.settings-content {
+    display: none;
+}
+
+.settings-content.active {
+    display: block;
+    animation: fadeIn 0.3s;
+}
+
+/* Настройки компрессии */
+.compression-settings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.input-group {
+    margin-bottom: 12px;
+}
+
+.input-group:last-child {
+    margin-bottom: 0;
+}
+
+label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+input, select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: var(--primary-color);
+}
+
+select {
+    appearance: none;
+    background-image: url("./assets/chevron-down.svg"); /* Изменим на локальный файл */
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
+}
+
+/* Комбинированные поля для ввода с опциями */
+.combo-input-container {
+    position: relative;
+}
+
+.combo-input {
+    width: 100%;
+    padding: 8px 10px;
+    padding-right: 28px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    outline: none;
+}
+
+.combo-input:focus {
+    border-color: var(--primary-color);
+}
+
+.combo-dropdown-toggle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 30px;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.combo-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-top: 4px;
+    z-index: 500; /* Высокий z-index для отображения поверх других элементов */
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Тень для выделения */
+}
+
+.combo-dropdown.show {
+    display: block;
+}
+
+.combo-option {
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.combo-option:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Улучшенный ползунок CRF */
+.crf-container {
+    margin-top: 4px;
+    position: relative;
+}
+
+.crf-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 8px;
+    outline: none;
+    background: linear-gradient(to right, 
+        var(--crf-high-quality) 0%, 
+        var(--crf-mid-quality) 50%, 
+        var(--crf-low-quality) 100%);
+    overflow: hidden;
+}
+
+.crf-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: white;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 2;
+}
+
+.crf-value {
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    background: var(--input-bg);
+    color: var(--text-color);
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    pointer-events: none;
+    min-width: 30px;
+    text-align: center;
+}
+
+.crf-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+}
+
+.crf-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+/* Иконка подсказки */
+.info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--border-color);
+    color: var(--text-color);
+    font-size: 10px;
+    cursor: pointer;
+    margin-left: 4px;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+}
+
+.info-icon:hover {
+    background: var(--primary-color);
+    transform: scale(1.2);
+}
+
+/* Блок сохранения */
+.save-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.save-path-container {
+    display: flex;
+    gap: 8px;
+}
+
+.save-path-container input {
+    flex: 1;
+}
+
+.browse-button {
+    background-color: var(--border-color);
+    color: var(--text-color);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.browse-button:hover {
+    background-color: #444;
+}
+
+.filename-container {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: var(--input-bg);
+}
+
+.filename-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 8px 10px;
+    color: var(--text-color);
+    font-size: 13px;
+    outline: none;
+}
+
+.filename-extension {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 8px 10px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    min-width: 45px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Футер с кнопками */
+.footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--card-bg);
+    z-index: 100;
+    position: relative;
+}
+
+.primary-button {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    transition: all 0.3s;
+    flex: 3;
+}
+
+.primary-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
+
+.primary-button:active {
+    transform: translateY(0);
+}
+
+.secondary-button {
+    background-color: var(--border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    transition: all 0.3s;
+    flex: 1;
+}
+
+.secondary-button:hover {
+    background-color: #444;
+}
+
+/* Экран прогресса */
+.progress-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 20px;
+    flex: 1;
+}
+
+.progress-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.progress-filename {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 30px;
+    text-align: center;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.progress-bar-container {
+    width: 85%;
+    height: 8px;
+    background-color: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--primary-gradient);
+    border-radius: 4px;
+    position: relative;
+    transition: width 0.3s ease;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        transparent 100%
+    );
+    animation: shine 1.5s infinite linear;
+    transform: translateX(-100%);
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 20px;
+    width: 85%;
+}
+
+.progress-stats {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Результаты сжатия */
+.results-content {
+    display: flex;
+    flex-direction: column;
+    padding: 30px 20px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.success-message {
+    color: var(--success-color);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 18px;
+}
+
+.compression-ratio {
+    background-color: var(--input-bg);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.ratio-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--success-color);
+    margin-bottom: 5px;
+}
+
+.ratio-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.comparison-row {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) minmax(200px, 1fr);
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.comparison-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 14px;
+    background-color: var(--input-bg);
+}
+
+.comparison-header {
+    margin-bottom: 12px;
+    color: var(--text-color);
+    position: relative;
+    display: inline-block;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.comparison-header::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--primary-gradient);
+}
+
+.file-info {
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+}
+
+.file-info span {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* Информация о пути к файлу на экране результатов */
+.file-path-info {
+    margin-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 12px;
+}
+
+.file-path-label {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+/* Информация о битрейте */
+.bitrate-range {
+    color: var(--success-color);
+    font-size: 11px;
+    background-color: rgba(76, 175, 80, 0.1);
+    padding: 1px 4px;
+    border-radius: 3px;
+    margin-left: 5px;
+}
+
+/* Красивое уведомление */
+.notification {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 300px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    z-index: 1000;
+    transform: translateY(150%);
+    transition: transform 0.3s ease;
+    border-left: 4px solid var(--primary-color);
+}
+
+.notification.show {
+    transform: translateY(0);
+    animation: slideUp 0.3s ease;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+}
+
+.notification-icon {
+    margin-right: 12px;
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.notification-text {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.notification-close {
+    color: var(--text-secondary);
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.notification-close:hover {
+    color: var(--text-color);
+}
+
+.notification-progress {
+    height: 3px;
+    background: var(--primary-gradient);
+    width: 100%;
+    transform-origin: left;
+    transform: scaleX(0);
+    transition: transform linear;
+}
+
+/* Отключенная кнопка */
+.primary-button.disabled {
+    background: linear-gradient(90deg, #999999 0%, #777777 100%);
+    color: #DDD;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.primary-button.disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Подсказка при наведении на отключенную кнопку */
+.primary-button.disabled:hover::after {
+    content: 'Сначала выберите видеофайл';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--card-darker);
+    color: var(--text-color);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    margin-bottom: 5px;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    animation: fadeIn 0.2s ease-out forwards;
+}
+
+.primary-button.disabled:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--card-darker);
+    margin-bottom: -1px;
+    z-index: 101;
+    opacity: 0;
+    animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Стили для кастомного диалога подтверждения */
+.confirm-dialog {
+    display: none;
+    position: fixed;
+    z-index: 1500; /* Выше, чем у других модальных окон */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    overflow: auto;
+}
+
+.confirm-dialog.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.confirm-dialog-content {
+    background-color: var(--card-bg);
+    width: 90%;
+    max-width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    animation: scaleIn 0.2s ease-out;
+    overflow: hidden;
+}
+
+.confirm-dialog-header {
+    padding: 15px 20px;
+    background: var(--primary-gradient);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.confirm-dialog-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.confirm-dialog-body {
+    padding: 25px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.confirm-dialog-icon {
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.confirm-dialog-body p {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.confirm-dialog-footer {
+    padding: 10px 20px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.confirm-dialog-footer .secondary-button,
+.confirm-dialog-footer .primary-button {
+    flex: initial;
+    padding: 8px 20px;
+}
+
+/* Новые стили для оценки размера */
+.size-estimate {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    padding: 5px 8px;
+    background-color: var(--input-bg);
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.size-estimate strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Улучшаем отображение больших чисел */
+.formatted-number {
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+}
+
+/* Стиль для предупреждений о параметрах */
+.parameters-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid var(--crf-mid-quality);
+    padding: 8px 12px;
+    margin: 10px 0;
+    font-size: 13px;
+    line-height: 1.5;
+    border-radius: 0 4px 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.parameters-warning .warning-icon {
+    color: var(--crf-mid-quality);
+    flex-shrink: 0;
+}
+
+.parameters-warning .warning-text {
+    flex: 1;
+}
+
+/* Улучшенный переключатель (toggle switch) */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    background-color: var(--border-color);
+    border-radius: 20px;
+    transition: all 0.3s;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.toggle-switch.small {
+    width: 30px;
+    height: 16px;
+}
+
+.toggle-switch:before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: white;
+    top: 2px;
+    left: 2px;
+    transition: all 0.3s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch.small:before {
+    width: 12px;
+    height: 12px;
+}
+
+input[type="checkbox"]:checked + .toggle-switch {
+    background: var(--primary-gradient);
+}
+
+input[type="checkbox"]:checked + .toggle-switch:before {
+    transform: translateX(16px);
+}
+
+input[type="checkbox"]:checked + .toggle-switch.small:before {
+    transform: translateX(14px);
+}
+
+.toggle-text {
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+/* Группы продвинутых настроек */
+.advanced-group {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.advanced-group:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.advanced-group-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    position: relative;
+    padding-left: 10px;
+}
+
+.advanced-group-title:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 80%;
+    width: 3px;
+    background: var(--primary-gradient);
+    border-radius: 4px;
+}
+
+/* Улучшенный контейнер продвинутых настроек */
+.advanced-params-container {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-left: 3px solid var(--primary-color);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.advanced-params-toggle {
+    margin-top: 16px;
+    margin-bottom: 0;
+    padding: 6px 10px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+}
+
+.advanced-params-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Скрытие нативного чекбокса */
+.toggle-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Адаптивность */
+@media (max-width: 580px) {
+    .compression-settings,
+    .comparison-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .video-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .notification {
+        width: calc(100% - 40px);
+        right: 20px;
+        bottom: 20px;
+    }
+}
+
+/* Для небольших экранов */
+@media (max-height: 600px) {
+    .section {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .video-grid {
+        gap: 5px;
+    }
+    
+    .input-group {
+        margin-bottom: 8px;
+    }
+}
+
+/* Для очень широких экранов */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 80%;
+        margin: 0 auto;
+    }
+    
+    .compression-settings {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+/* Улучшение внешнего вида элементов в продвинутых настройках */
+.advanced-params-container select,
+.advanced-params-container input[type="range"] {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-color: var(--border-color);
+}
+
+.advanced-params-container .input-group {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.advanced-params-container label {
+    color: var(--text-color);
+}
+
+/* Улучшаем стили для визуализации прогресса двухпроходного кодирования */
+.progress-pass-info {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-top: 5px;
+    text-align: center;
+}
+
+/* Стиль для индикатора текущего прохода */
+.progress-pass-indicator {
+    display: inline-block;
+    padding: 2px 6px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 3px;
+    font-size: 11px;
+    margin-left: 5px;
+}
+
+/* Контейнер для отображения пути */
+.file-path-display {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 8px;
+}
+
+/* Дополнительные стили для страницы результатов */
+.results-content .file-path-container {
+    max-width: 100%; /* Ограничиваем максимальную ширину */
+}
+
+.results-content .file-path-value {
+    /* Разрешаем перенос на новую строку для длинных путей */
+    white-space: normal;
+    line-height: 1.3;
+    word-break: break-all; /* Разрешаем перенос в любом месте для путей */
+}
+
+/* Усовершенствование адаптивности блоков результатов */
+.comparison-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 14px;
+    background-color: var(--input-bg);
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Важно для правильной работы overflow в дочерних элементах */
+}
+
+/* Убираем фиксированную ширину для контейнера результатов */
+.success-message, .compression-ratio, .comparison-row {
+    max-width: 100%;
+}
+
+/* Обновление для кнопок в footer результатов */
+.results-view .footer {
+    flex-wrap: wrap; /* Разрешаем перенос кнопок на маленьких экранах */
+    gap: 8px;
+}
+
+@media (max-width: 480px) {
+    .results-view .footer button {
+        flex: 100%; /* На совсем маленьких экранах кнопки будут на полную ширину */
+        margin-bottom: 5px;
+    }
+}

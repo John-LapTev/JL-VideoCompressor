@@ -1,0 +1,67 @@
+{
+  "name": "jl-videocompressor",
+  "version": "1.0.0",
+  "description": "Мощное приложение для сжатия видео с высоким качеством",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "author": "JL",
+  "license": "MIT",
+  "build": {
+    "appId": "com.jl.videocompressor",
+    "productName": "JL VideoCompressor",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "resources/icons/icon.ico"
+    },
+    "portable": {
+      "artifactName": "JL-VideoCompressor-Portable.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": [
+        "ru-RU"
+      ],
+      "language": "1049"
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!dist/**/*",
+      "!build/**/*",
+      "!**/.git/**/*"
+    ],
+    "asarUnpack": [
+      "node_modules/ffmpeg-static/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/ffmpeg-static/ffmpeg.exe",
+        "to": "ffmpeg.exe"
+      }
+    ]
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "fluent-ffmpeg": "^2.1.3"
+  },
+  "devDependencies": {
+    "electron-packager": "^17.1.2",
+    "electron": "^35.0.3",
+    "electron-builder": "^25.1.8"
+  }
+}

@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <title>JL VideoCompressor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Область для всплывающих подсказок -->
+        <div id="tooltip-area" class="tooltip-area">
+            <div class="tooltip-title" id="tooltip-title">Название подсказки</div>
+            <div class="tooltip-content" id="tooltip-content">Содержимое подсказки</div>
+            <div class="tooltip-close" id="tooltip-close">&times;</div>
+        </div>
+
+        <!-- Кастомный диалог подтверждения -->
+        <div class="confirm-dialog" id="confirm-dialog">
+            <div class="confirm-dialog-content">
+                <div class="confirm-dialog-header">
+                    <h3 id="confirm-title">Подтверждение</h3>
+                </div>
+                <div class="confirm-dialog-body">
+                    <div class="confirm-dialog-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </div>
+                    <p id="confirm-message">Сообщение подтверждения</p>
+                </div>
+                <div class="confirm-dialog-footer">
+                    <button class="secondary-button" id="confirm-cancel-btn">Отмена</button>
+                    <button class="primary-button" id="confirm-ok-btn">Продолжить</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Отдельные модальные окна для каждой подсказки -->
+        <div class="tooltip-modal" id="tooltip-format">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Формат выходного файла</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Выбор формата определяет тип и кодек сжатого видео:</strong></p>
+                    <p>• <strong>Оригинал</strong> – сохраняет исходный формат файла</p>
+                    <p>• <strong>MP4 (H.264)</strong> – наиболее универсальный и совместимый формат</p>
+                    <p>• <strong>MP4 (H.265/HEVC)</strong> – лучшее сжатие, но требует поддержки устройствами</p>
+                    <p>• <strong>WebM (VP9)</strong> – открытый формат, хорошо подходит для веб</p>
+                    <p>• <strong>AVI</strong> – старый, но широко поддерживаемый формат</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tooltip-modal" id="tooltip-resolution">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Разрешение видео</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Разрешение влияет на качество и размер файла:</strong></p>
+                    <p>• <strong>Оригинал</strong> – сохраняет исходное разрешение</p>
+                    <p>• <strong>1080p</strong> – Full HD (1920×1080), хорошее качество для большинства экранов</p>
+                    <p>• <strong>720p</strong> – HD (1280×720), баланс между качеством и размером</p>
+                    <p>• <strong>480p</strong> – SD (854×480), значительное уменьшение размера</p>
+                    <p>• <strong>360p</strong> – низкое разрешение (640×360), минимальный размер</p>
+                    <p>Меньшее разрешение дает меньший размер файла, но ухудшает качество изображения.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tooltip-modal" id="tooltip-quality">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Качество сжатия (CRF)</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>CRF (Constant Rate Factor) регулирует баланс между качеством и размером:</strong></p>
+                    <p>• <strong>Низкий CRF (16-20)</strong> – высокое качество, больший размер файла</p>
+                    <p>• <strong>Средний CRF (21-25)</strong> – хороший баланс, рекомендуется 23</p>
+                    <p>• <strong>Высокий CRF (26-37)</strong> – ниже качество, меньший размер файла</p>
+                    <p>Чем ниже значение CRF, тем выше качество видео и больше размер файла.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tooltip-modal" id="tooltip-speed">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Скорость сжатия</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Выбор между скоростью сжатия и оптимизацией файла:</strong></p>
+                    <p>• <strong>Медленнее</strong> – программа будет тщательнее анализировать видео, что даст лучшую оптимизацию, но займёт больше времени.</p>
+                    <p>• <strong>Стандартная</strong> – оптимальный баланс между скоростью сжатия и качеством.</p>
+                    <p>• <strong>Быстрее</strong> – программа будет работать быстрее, но эффективность сжатия будет ниже. Размер файла может оказаться больше.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tooltip-modal" id="tooltip-audio-codec">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Аудио кодек</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Формат сжатия аудио в видеофайле:</strong></p>
+                    <p>• <strong>AAC</strong> – современный универсальный кодек, хорошее качество при малом размере</p>
+                    <p>• <strong>MP3</strong> – широко поддерживаемый кодек, средняя степень сжатия</p>
+                    <p>• <strong>Оригинал</strong> – сохраняет исходный аудио кодек видеофайла</p>
+                    <p>AAC обеспечивает лучшее качество звука при меньшем размере файла по сравнению с MP3.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tooltip-modal" id="tooltip-audio-bitrate">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Битрейт аудио</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Качество звука в видеофайле:</strong></p>
+                    <p>• <strong>64 kbps</strong> – низкое качество, минимальный размер (для речи)</p>
+                    <p>• <strong>96 kbps</strong> – базовое качество для большинства видео</p>
+                    <p>• <strong>128 kbps</strong> – стандартное качество, достаточное для большинства видео</p>
+                    <p>• <strong>192 kbps</strong> – высокое качество для музыки и важных звуков</p>
+                    <p>• <strong>256 kbps</strong> – очень высокое качество для музыкальных видео</p>
+                    <p>• <strong>320 kbps</strong> – максимальное качество, редко требуется для обычных видео</p>
+                    <p>Чем выше битрейт, тем лучше качество звука, но больше размер файла.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tooltip-modal" id="tooltip-bitrate">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Битрейт видео</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Регулирует количество данных для хранения видео:</strong></p>
+                    <p>• <strong>Переменный (VBR)</strong> – адаптивный битрейт, оптимизируется автоматически в зависимости от содержимого видео.</p>
+                    <p>• <strong>Постоянный (CBR)</strong> – фиксированный битрейт, одинаковый для всего видео. Задаётся числом в Kbps.</p>
+                    <p>Рекомендуемые значения: 1 000-2 000 Kbps для SD, 5 000-8 000 Kbps для HD, 10 000-20 000 Kbps для Full HD.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tooltip-modal" id="tooltip-fps">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Частота кадров (FPS)</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Определяет количество кадров в секунду:</strong></p>
+                    <p>• <strong>Оригинал</strong> – сохраняет исходную частоту кадров видео</p>
+                    <p>• <strong>30 fps</strong> – стандарт для большинства видео, плавное воспроизведение</p>
+                    <p>• <strong>60 fps</strong> – высокая плавность, для динамичных видео</p>
+                    <p>• <strong>24 fps</strong> – "кинематографичный" стандарт</p>
+                    <p>Можно ввести пользовательское значение от 1 до 120 fps.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Добавляем новый tooltip для пресетов -->
+        <div class="tooltip-modal" id="tooltip-presets">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Пресеты оптимизации</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Предустановленные наборы настроек для различных типов видео:</strong></p>
+                    <p>• <strong>Без пресета</strong> – используются текущие настройки без изменений</p>
+                    <p>• <strong>Игровое видео</strong> – оптимизировано для динамичных игровых записей с высоким FPS</p>
+                    <p>• <strong>Фильм/Сериал</strong> – настройки для киноконтента, сохраняет кинематографичность</p>
+                    <p>• <strong>Мобильное устройство</strong> – максимальная совместимость и меньший размер файла</p>
+                    <p>• <strong>Максимальное качество</strong> – минимальная потеря качества при сжатии</p>
+                    <p>• <strong>Максимальное сжатие</strong> – минимальный размер файла с приемлемым качеством</p>
+                    <p>Каждый пресет автоматически настраивает все параметры для достижения наилучшего результата.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Добавляем подсказки для продвинутых настроек -->
+        <div class="tooltip-modal" id="tooltip-advanced-params">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Продвинутые параметры кодирования</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Параметры для тонкой настройки качества сжатия:</strong></p>
+                    <p>Эти настройки влияют на алгоритмы сжатия видео и позволяют достичь лучшего качества или меньшего размера файла.</p>
+                    <p>Рекомендуется использовать их, если вам нужно добиться максимального качества при минимальном размере файла или у вас есть особые требования к видео.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tooltip-modal" id="tooltip-aq-mode">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Режим адаптивной квантизации</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Что это:</strong> Настройка, которая оптимизирует качество видео, регулируя детализацию разных участков кадра.</p>
+                    <p><strong>Как это работает:</strong> Система анализирует каждый кадр и выделяет больше данных для важных или сложных частей изображения.</p>
+                    <p>• <strong>Выключено (0)</strong> – равномерное качество по всему кадру, может создавать артефакты на сложных участках</p>
+                    <p>• <strong>Режим 1 (Простой)</strong> – базовая оптимизация, хорошо подходит для простых видео</p>
+                    <p>• <strong>Режим 2 (Автоматический)</strong> – улучшенный алгоритм, адаптируется к контенту видео</p>
+                    <p>• <strong>Режим 3 (Усиленный)</strong> – максимальная оптимизация, рекомендуется для видео с высокой детализацией</p>
+                    <p><strong>Пример:</strong> В игровом видео с динамичными сценами выбор "Режима 3" значительно улучшит качество изображения без увеличения размера файла.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tooltip-modal" id="tooltip-aq-strength">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Сила адаптивной квантизации</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Что это:</strong> Определяет насколько интенсивно будет применяться адаптивная квантизация.</p>
+                    <p><strong>Как это работает:</strong> Чем выше значение, тем сильнее разница в качестве между важными и второстепенными участками кадра.</p>
+                    <p>• <strong>Низкие значения (0.1-0.5)</strong> – минимальное влияние, небольшая разница между участками</p>
+                    <p>• <strong>Средние значения (0.6-1.0)</strong> – оптимальный баланс, рекомендуется для большинства видео</p>
+                    <p>• <strong>Высокие значения (1.1-2.0)</strong> – максимальное влияние, может улучшить детали в ключевых областях, но ухудшить второстепенные</p>
+                    <p><strong>Пример:</strong> Для фильмов значение 0.8-1.0 обычно дает наилучшие результаты, сохраняя детали лиц и текстур.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tooltip-modal" id="tooltip-bframes">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>B-кадры (двунаправленные кадры)</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Что это:</strong> Промежуточные кадры, которые ссылаются как на предыдущие, так и на последующие кадры в видеопотоке.</p>
+                    <p><strong>Как это работает:</strong> B-кадры занимают меньше места, чем полные кадры, поэтому увеличение их количества может уменьшить размер файла.</p>
+                    <p>• <strong>3 кадра</strong> – стандартное значение, подходит для большинства видео</p>
+                    <p>• <strong>5 кадров</strong> – улучшенное сжатие для видео со средней динамикой</p>
+                    <p>• <strong>8 кадров</strong> – максимальное сжатие, лучше для видео с плавными переходами</p>
+                    <p><strong>Пример:</strong> Для видеолекции или фильма с плавными сценами выбор 8 кадров даст лучшее сжатие без потери качества.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tooltip-modal" id="tooltip-ref-frames">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Опорные кадры (Reference Frames)</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Что это:</strong> Количество предыдущих кадров, которые кодек может использовать для предсказания текущего кадра.</p>
+                    <p><strong>Как это работает:</strong> Большее количество опорных кадров обычно улучшает качество видео, но требует больше ресурсов при воспроизведении.</p>
+                    <p>• <strong>3 кадра</strong> – стандартное значение, подходит для максимальной совместимости</p>
+                    <p>• <strong>4 кадра</strong> – улучшенное качество, хорошо работает на большинстве устройств</p>
+                    <p>• <strong>5 кадров</strong> – максимальное качество для сложных сцен</p>
+                    <p><strong>Пример:</strong> Для игрового видео с быстрым движением выбор 5 опорных кадров может заметно улучшить четкость движущихся объектов.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tooltip-modal" id="tooltip-twopass">
+            <div class="tooltip-modal-content">
+                <div class="tooltip-modal-header">
+                    <h3>Двухпроходное кодирование</h3>
+                    <span class="tooltip-modal-close">&times;</span>
+                </div>
+                <div class="tooltip-modal-body">
+                    <p><strong>Что это:</strong> Метод сжатия, при котором видео анализируется дважды для оптимизации качества.</p>
+                    <p><strong>Как это работает:</strong></p>
+                    <p>• <strong>Первый проход:</strong> Программа анализирует всё видео, собирая данные о сложности сцен, движении и деталях.</p>
+                    <p>• <strong>Второй проход:</strong> Используя собранные данные, программа эффективнее распределяет битрейт между разными частями видео.</p>
+                    <p><strong>Плюсы:</strong> Лучшее качество при том же размере файла, особенно для видео с разными по сложности сценами.</p>
+                    <p><strong>Минусы:</strong> Время сжатия увеличивается примерно вдвое.</p>
+                    <p><strong>Пример:</strong> Для фильма, где чередуются динамичные экшен-сцены и спокойные диалоги, двухпроходное кодирование обеспечит более равномерное качество.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Красивое уведомление -->
+        <div class="notification" id="notification">
+            <div class="notification-content">
+                <div class="notification-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 8v4"></path>
+                        <path d="M12 16h.01"></path>
+                    </svg>
+                </div>
+                <div class="notification-text" id="notification-text">
+                    Настройки сброшены до значений по умолчанию
+                </div>
+                <div class="notification-close" id="notification-close">&times;</div>
+            </div>
+            <div class="notification-progress" id="notification-progress"></div>
+        </div>
+
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="18" height="18" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" style="stop-color:#FF6B6B"></stop>
+                          <stop offset="100%" style="stop-color:#FF8E53"></stop>
+                        </linearGradient>
+                      </defs>
+                      <g fill="url(#logoGradient)" font-family="Inter, sans-serif" font-weight="700" font-size="20">
+                        <text x="4" y="22">JL</text>
+                      </g>
+                    </svg>
+                </div>
+                VideoCompressor
+            </div>
+            
+            <div class="social-links">
+                <a href="#" onclick="window.open('https://t.me/JL_Stable_Diffusion')" class="social-link" title="Telegram">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21.633 3.373c-.17-.171-.425-.225-.65-.142L2.89 10.116a.489.489 0 0 0-.288.528c.02.196.153.367.342.433l4.967 1.758 1.75 5.623c.066.212.256.357.478.357.007 0 .014 0 .02 0 .23-.008.425-.166.478-.387l4.926-14.874c.075-.225-.008-.47-.203-.607"></path>
+                    </svg>
+                </a>
+                <a href="#" onclick="window.open('https://youtube.com/@cheesez_crazy')" class="social-link" title="YouTube">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                    </svg>
+                </a>
+                <a href="#" onclick="window.open('http://instagram.com/john_laptev')" class="social-link" title="Instagram">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                    </svg>
+                </a>
+                <a href="#" onclick="window.open('https://boosty.to/jlsd')" class="social-link" title="Boosty">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L12 3L18 18M12 11L16 20M8 20L10.5 14.5"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20H15"></path>
+                    </svg>
+                </a>
+            </div>
+            
+            <div class="version">v1.0</div>
+        </header>
+
+        <!-- Основной контейнер для содержимого -->
+        <div class="content-container">
+            <!-- Основной интерфейс приложения -->
+            <div class="main-view active">
+                <div class="main-content">
+                    <div class="section">
+                        <div class="section-title">Выбор видео</div>
+                        
+                        <!-- Компактная область для выбора файла -->
+                        <div class="compact-dropzone" id="dropzone">
+                            <div class="dropzone-icon">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                            </div>
+                            <div class="dropzone-text">
+                                <div class="dropzone-title">Перетащите видеофайл сюда или нажмите для выбора</div>
+                                <div class="dropzone-formats">MP4, AVI, MOV, MKV, WebM</div>
+                            </div>
+                            <input type="file" id="file-input" accept="video/*">
+                        </div>
+                        
+                        <!-- Компактная информация о видео -->
+                        <div class="video-info" id="video-info">
+                            <div class="video-header">
+                                <div class="video-thumbnail">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+                                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                    </svg>
+                                </div>
+                                <div class="video-name" id="video-name">Professional_Mode_Generated_Video.mp4</div>
+                                <button class="change-video-btn" id="change-video-btn">Изменить</button>
+                            </div>
+                            <div class="video-grid">
+                                <div class="video-detail">
+                                    <div class="video-detail-label">Размер:</div>
+                                    <div class="video-detail-value" id="video-size">19.58 MB</div>
+                                </div>
+                                <div class="video-detail">
+                                    <div class="video-detail-label">Формат:</div>
+                                    <div class="video-detail-value" id="video-format">MP4</div>
+                                </div>
+                                <div class="video-detail">
+                                    <div class="video-detail-label">Разрешение:</div>
+                                    <div class="video-detail-value" id="video-resolution">1920x1080</div>
+                                </div>
+                                <div class="video-detail">
+                                    <div class="video-detail-label">Длительность:</div>
+                                    <div class="video-detail-value" id="video-duration">0:30</div>
+                                </div>
+                                <div class="video-detail">
+                                    <div class="video-detail-label">Битрейт:</div>
+                                    <div class="video-detail-value" id="video-bitrate">8 Mbps</div>
+                                </div>
+                                <div class="video-detail">
+                                    <div class="video-detail-label">FPS:</div>
+                                    <div class="video-detail-value" id="video-fps">30</div>
+                                </div>
+                            </div>
+                            <!-- Дополнительная информация о путях -->
+                            <div class="video-path-info">
+                                <div class="video-detail-label">Путь к файлу:</div>
+                                <div class="file-path-container">
+                                    <span class="file-path-value" id="video-path-display">C:\Users\Username\Videos\video.mp4</span>
+                                    <div class="file-path-actions">
+                                        <button class="file-action-btn" id="open-source-folder-btn" title="Открыть папку">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                        </button>
+                                        <button class="file-action-btn" id="play-source-video-btn" title="Воспроизвести">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section collapsible" id="settings-section">
+                        <div class="section-title-container">
+                            <div class="section-title">Настройки</div>
+                            <div class="collapse-toggle" id="settings-toggle">
+                                <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline class="chevron-down" points="6 9 12 15 18 9"></polyline>
+                                    <polyline class="chevron-up" points="18 15 12 9 6 15" style="display: none;"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="section-content" id="settings-content">
+                            <div class="settings-tabs">
+                                <div class="settings-tab active" data-tab="basic">Основные</div>
+                                <div class="settings-tab" data-tab="advanced">Расширенные</div>
+                            </div>
+                            
+                            <div class="settings-content active" id="basic-settings">
+                                <div class="compression-settings">
+                                    <div class="input-group">
+                                        <label for="format">
+                                            Формат
+                                            <span class="info-icon" data-tooltip="format">?</span>
+                                        </label>
+                                        <select id="format">
+                                            <option value="original">Оригинал (MP4)</option>
+                                            <option value="mp4">MP4 (H.264)</option>
+                                            <option value="mp4-hevc">MP4 (H.265/HEVC)</option>
+                                            <option value="webm">WebM (VP9)</option>
+                                            <option value="avi">AVI</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label for="resolution">
+                                            Разрешение
+                                            <span class="info-icon" data-tooltip="resolution">?</span>
+                                        </label>
+                                        <select id="resolution">
+                                            <option value="original">Оригинал (1920x1080)</option>
+                                            <option value="1080p">1080p (1920x1080)</option>
+                                            <option value="720p">720p (1280x720)</option>
+                                            <option value="480p">480p (854x480)</option>
+                                            <option value="360p">360p (640x360)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label for="quality">
+                                            Качество
+                                            <span class="info-icon" data-tooltip="quality">?</span>
+                                        </label>
+                                        <div class="crf-container">
+                                            <input type="range" id="quality" class="crf-slider" min="16" max="37" value="23" step="1">
+                                            <div class="crf-value" id="crf-value">23</div>
+                                            <div class="crf-labels">
+                                                <div class="crf-label">Высокое</div>
+                                                <div class="crf-label">Баланс</div>
+                                                <div class="crf-label">Малый</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label for="speed">
+                                            Скорость сжатия
+                                            <span class="info-icon" data-tooltip="speed">?</span>
+                                        </label>
+                                        <select id="speed">
+                                            <option value="slow">Медленнее (лучше оптимизация)</option>
+                                            <option value="medium" selected>Стандартная (рекомендуется)</option>
+                                            <option value="fast">Быстрее (хуже оптимизация)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-content" id="advanced-settings">
+                                <div class="compression-settings">
+                                    <div class="input-group">
+                                        <label for="preset-select">
+                                            Пресеты оптимизации
+                                            <span class="info-icon" data-tooltip="presets">?</span>
+                                        </label>
+                                        <select id="preset-select">
+                                            <option value="none" selected>Без пресета</option>
+                                            <option value="game">Игровое видео</option>
+                                            <option value="film">Фильм/Сериал</option>
+                                            <option value="mobile">Мобильное устройство</option>
+                                            <option value="quality">Максимальное качество</option>
+                                            <option value="compression">Максимальное сжатие</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label for="bitrate">
+                                            Битрейт
+                                            <span class="info-icon" data-tooltip="bitrate">?</span>
+                                        </label>
+                                        <!-- Комбинированное поле для битрейта (выбор из списка + ввод вручную) -->
+                                        <div class="combo-input-container">
+                                            <input type="text" id="bitrate-input" class="combo-input" value="Переменный (VBR)" data-value="vbr">
+                                            <button class="combo-dropdown-toggle" id="bitrate-toggle">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+                                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                                </svg>
+                                            </button>
+                                            <div class="combo-dropdown" id="bitrate-dropdown">
+                                                <div class="combo-option" data-value="vbr">Переменный (VBR)</div>
+                                                <div class="combo-option" data-value="1000">1 000 Kbps</div>
+                                                <div class="combo-option" data-value="2000">2 000 Kbps</div>
+                                                <div class="combo-option" data-value="5000">5 000 Kbps</div>
+                                                <div class="combo-option" data-value="8000">8 000 Kbps</div>
+                                                <div class="combo-option" data-value="10000">10 000 Kbps</div>
+                                                <div class="combo-option" data-value="15000">15 000 Kbps</div>
+                                                <div class="combo-option" data-value="20000">20 000 Kbps</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="input-group">
+                                        <label for="framerate">
+                                            Частота кадров
+                                            <span class="info-icon" data-tooltip="fps">?</span>
+                                        </label>
+                                        <!-- Комбинированное поле для FPS (выбор из списка + ввод вручную) -->
+                                        <div class="combo-input-container">
+                                            <input type="text" id="fps-input" class="combo-input" value="Оригинал (30 fps)" data-value="original">
+                                            <button class="combo-dropdown-toggle" id="fps-toggle">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+                                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                                </svg>
+                                            </button>
+                                            <div class="combo-dropdown" id="fps-dropdown">
+                                                <div class="combo-option" data-value="original">Оригинал (30 fps)</div>
+                                                <div class="combo-option" data-value="60">60 fps</div>
+                                                <div class="combo-option" data-value="30">30 fps</div>
+                                                <div class="combo-option" data-value="24">24 fps</div>
+                                                <div class="combo-option" data-value="custom">Другое значение...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="input-group">
+                                        <label for="audio-codec">
+                                            Аудио кодек
+                                            <span class="info-icon" data-tooltip="audio-codec">?</span>
+                                        </label>
+                                        <select id="audio-codec">
+                                            <option value="aac">AAC</option>
+                                            <option value="mp3">MP3</option>
+                                            <option value="original">Оригинал</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="input-group">
+                                        <label for="audio-bitrate">
+                                            Битрейт аудио
+                                            <span class="info-icon" data-tooltip="audio-bitrate">?</span>
+                                        </label>
+                                        <select id="audio-bitrate">
+                                            <option value="64">64 kbps</option>
+                                            <option value="96">96 kbps</option>
+                                            <option value="128">128 kbps</option>
+                                            <option value="192">192 kbps</option>
+                                            <option value="256">256 kbps</option>
+                                            <option value="320">320 kbps</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Улучшенный переключатель продвинутых настроек -->
+                                    <div class="advanced-params-toggle">
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="enable-advanced-params"> 
+                                            <span class="toggle-switch"></span>
+                                            <span class="toggle-text">Продвинутые параметры кодирования</span>
+                                            <span class="info-icon" data-tooltip="advanced-params">?</span>
+                                        </label>
+                                    </div>
+
+                                    <!-- Улучшенный контейнер продвинутых настроек -->
+                                    <div class="advanced-params-container" id="advanced-params-container">
+                                        <div class="advanced-group">
+                                            <div class="advanced-group-title">Адаптивная квантизация</div>
+                                            <div class="input-group">
+                                                <label for="aq-mode">
+                                                    Режим квантизации (AQ Mode)
+                                                    <span class="info-icon" data-tooltip="aq-mode">?</span>
+                                                </label>
+                                                <select id="aq-mode">
+                                                    <option value="0">Выключено</option>
+                                                    <option value="1">Режим 1 (Простой)</option>
+                                                    <option value="2">Режим 2 (Автоматический)</option>
+                                                    <option value="3" selected>Режим 3 (Усиленный)</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="input-group">
+                                                <label for="aq-strength">
+                                                    Сила квантизации (AQ Strength)
+                                                    <span class="info-icon" data-tooltip="aq-strength">?</span>
+                                                </label>
+                                                <input type="range" id="aq-strength" min="0.1" max="2.0" step="0.1" value="0.8">
+                                                <div class="range-value" id="aq-strength-value">0.8</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="advanced-group">
+                                            <div class="advanced-group-title">Параметры кадров</div>
+                                            <div class="input-group">
+                                                <label for="bframes">
+                                                    B-кадры (промежуточные кадры)
+                                                    <span class="info-icon" data-tooltip="bframes">?</span>
+                                                </label>
+                                                <select id="bframes">
+                                                    <option value="3">3 (Стандарт)</option>
+                                                    <option value="5">5 (Улучшенное)</option>
+                                                    <option value="8" selected>8 (Максимум)</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="input-group">
+                                                <label for="ref">
+                                                    Опорные кадры (Reference Frames)
+                                                    <span class="info-icon" data-tooltip="ref-frames">?</span>
+                                                </label>
+                                                <select id="ref">
+                                                    <option value="3">3 (Стандарт)</option>
+                                                    <option value="4">4 (Улучшенное)</option>
+                                                    <option value="5" selected>5 (Максимум)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="advanced-group">
+                                            <div class="advanced-group-title">Параметры кодирования</div>
+                                            <div class="input-group">
+                                                <label class="toggle-label">
+                                                    <input type="checkbox" id="enable-twopass" checked> 
+                                                    <span class="toggle-switch small"></span>
+                                                    <span class="toggle-text">Двухпроходное кодирование</span>
+                                                    <span class="info-icon" data-tooltip="twopass">?</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Сохранение</div>
+                        <div class="save-container">
+                            <div class="save-path-container">
+                                <input type="text" id="destination-path" value="C:\Users\Username\Videos" readonly>
+                                <button class="browse-button">Обзор</button>
+                            </div>
+                            <div class="filename-container">
+                                <input type="text" class="filename-input" id="filename-input" value="CRF-23_Video">
+                                <div class="filename-extension" id="filename-extension">.mp4</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <button class="primary-button" id="compress-btn">Сжать видео</button>
+                    <button class="secondary-button" id="reset-btn">Сброс</button>
+                </div>
+            </div>
+
+            <!-- Экран процесса сжатия -->
+            <div class="progress-view" id="progress-view">
+                <div class="progress-content">
+                    <div class="progress-title">Сжатие видео</div>
+                    <div class="progress-filename" id="progress-filename">Professional_Mode_Generated_Video.mp4</div>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                    
+                    <div class="progress-info">
+                        <div id="progress-percentage">0%</div>
+                        <div id="progress-time">Осталось: 0:30</div>
+                    </div>
+                    
+                    <div class="progress-stats" id="progress-stats">
+                        Сжато: 0 MB / 19.58 MB
+                    </div>
+                    <div class="progress-pass-info" id="progress-pass-info" style="display: none;">
+                        Проход: <span id="current-pass">1</span> из <span id="total-passes">2</span>
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <button class="secondary-button" id="cancel-btn">Отмена</button>
+                </div>
+            </div>
+
+            <!-- Экран результатов (улучшенный) -->
+            <div class="results-view" id="results-view">
+                <div class="results-content">
+                    <div class="success-message">
+                        Сжатие видео успешно завершено!
+                    </div>
+                    
+                    <div class="compression-ratio">
+                        <div class="ratio-value">73%</div>
+                        <div class="ratio-label">уменьшение размера файла</div>
+                    </div>
+                    
+                    <div class="comparison-row">
+                        <div class="comparison-item">
+                            <div class="comparison-header">Исходный файл</div>
+                            <div class="file-info">Размер: <span id="original-size">19.58 MB</span></div>
+                            <div class="file-info">Разрешение: <span id="original-resolution">1920x1080</span></div>
+                            <div class="file-info">Битрейт: <span id="original-bitrate">8 Mbps</span></div>
+                            <div class="file-info">Длительность: <span id="original-duration">0:30</span></div>
+                            <div class="file-info">Формат: <span id="original-format">MP4</span></div>
+                            <div class="file-info">FPS: <span id="original-fps">30</span></div>
+                            
+                            <!-- Добавляем информацию о пути к файлу -->
+                            <div class="file-path-info">
+                                <div class="file-path-label">Путь к файлу:</div>
+                                <div class="file-path-container">
+                                    <div class="file-path-display">
+                                        <span class="file-path-value" id="original-path">C:\Users\Username\Videos\video.mp4</span>
+                                    </div>
+                                    <div class="file-path-actions">
+                                        <button class="file-action-btn" id="open-original-folder-btn" title="Открыть папку">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                        </button>
+                                        <button class="file-action-btn" id="play-original-video-btn" title="Воспроизвести">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="comparison-item">
+                            <div class="comparison-header">Сжатый файл</div>
+                            <div class="file-info">Размер: <span id="compressed-size">5.29 MB</span></div>
+                            <div class="file-info">Разрешение: <span id="compressed-resolution">1280x720 (720p)</span></div>
+                            <div class="file-info">Формат: <span id="compressed-format">MP4 (H.264)</span></div>
+                            <div class="file-info">Битрейт: <span id="compressed-bitrate">Переменный (VBR)</span> <span id="actual-bitrate" class="bitrate-range">~2500-4300 Kbps</span></div>
+                            <div class="file-info">Качество (CRF): <span id="compressed-crf">23</span></div>
+                            <div class="file-info">FPS: <span id="compressed-fps">30</span></div>
+                            
+                            <!-- Добавляем информацию о пути к сжатому файлу -->
+                            <div class="file-path-info">
+                                <div class="file-path-label">Путь к файлу:</div>
+                                <div class="file-path-container">
+                                    <div class="file-path-display">
+                                        <span class="file-path-value" id="compressed-path">C:\Users\Username\Videos\CRF-23_video.mp4</span>
+                                    </div>
+                                    <div class="file-path-actions">
+                                        <button class="file-action-btn" id="open-compressed-folder-btn" title="Открыть папку">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                        </button>
+                                        <button class="file-action-btn" id="play-compressed-video-btn" title="Воспроизвести">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer" style="justify-content: space-between;">
+                    <button class="secondary-button" id="open-file-btn" style="flex: 1;">Открыть файл</button>
+                    <button class="secondary-button" id="open-folder-btn" style="flex: 1;">Открыть папку</button>
+                    <button class="primary-button" id="new-video-btn" style="flex: 2;">Сжать новое видео</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
